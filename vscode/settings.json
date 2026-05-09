@@ -24,9 +24,9 @@
   "prettier.bracketSameLine": true,
 
   // Misc.
-  "security.workspace.trust.enabled": false,
-  "security.workspace.trust.startupPrompt": "never",
-  "security.workspace.trust.untrustedFiles": "open",
+  //"security.workspace.trust.enabled": false, CAUTION
+  //"security.workspace.trust.startupPrompt": "never", CAUTION
+  //"security.workspace.trust.untrustedFiles": "open", CAUTION
   "chat.agent.enabled": false,
   "chat.checkpoints.enabled": false,
   "chat.disableAIFeatures": true,
