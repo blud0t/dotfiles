@@ -7,10 +7,21 @@
   "workbench.iconTheme": "material-icon-theme",
   "workbench.tree.renderIndentGuides": "always",
   "workbench.editorAssociations": {
-    "*.sqlite": "default",
+    "*.sqlite": "default"
   },
   // Extension settings.
   "extensions.ignoreRecommendations": true,
+  // Prettier overrides.
+  "[json]": {
+    "prettier.trailingComma": "none"
+  },
+  "[jsonc]": {
+    "prettier.trailingComma": "none"
+  },
+  "[markdown]": {
+    "prettier.proseWrap": "preserve"
+  },
+  "prettier.bracketSameLine": true,
 
   // Misc.
   "security.workspace.trust.enabled": false,
@@ -57,7 +68,7 @@
     "editorIndentGuide.activeBackground3": "#ff1493",
     "editorIndentGuide.activeBackground4": "#00ff7f",
     "editorIndentGuide.activeBackground5": "#da70d6",
-    "editorIndentGuide.activeBackground6": "#ff8c00",
+    "editorIndentGuide.activeBackground6": "#ff8c00"
   },
 
   // Terminal settings - Font, zsh plugins.
@@ -65,5 +76,5 @@
   "terminal.integrated.cursorBlinking": true,
   "terminal.integrated.fontFamily": "'Vertex Mono NF', monospace",
   "terminal.integrated.fontSize": 16,
-  "terminal.integrated.fontLigatures": false,
+  "terminal.integrated.fontLigatures": false
 }
