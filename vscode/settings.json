@@ -1,0 +1,69 @@
+{
+  // Workbench and general settings.
+  "workbench.startupEditor": "none",
+  "workbench.tips.enabled": false,
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "workbench.colorTheme": "Purple Fizz",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.tree.renderIndentGuides": "always",
+  "workbench.editorAssociations": {
+    "*.sqlite": "default",
+  },
+  // Extension settings.
+  "extensions.ignoreRecommendations": true,
+
+  // Misc.
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.startupPrompt": "never",
+  "security.workspace.trust.untrustedFiles": "open",
+  "chat.agent.enabled": false,
+  "chat.checkpoints.enabled": false,
+  "chat.disableAIFeatures": true,
+  "chat.detectParticipant.enabled": false,
+  "keyboard.touchbar.enabled": false,
+  "update.showReleaseNotes": false,
+  "telemetry.feedback.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "git.addAICoAuthor": "off",
+
+  // Editor settings.
+  "editor.fontFamily": "'Vertex Mono NF', monospace",
+  "editor.fontLigatures": false,
+  "editor.fontSize": 14,
+  "editor.minimap.enabled": false,
+  "editor.linkedEditing": true,
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorStyle": "line",
+  "editor.cursorSmoothCaretAnimation": "on",
+  // Turn off bracket overlaps with indents.
+  "editor.guides.bracketPairs": false,
+  // Grid based indent lines.
+  "editor.guides.indentation": true,
+  // Code formatter.
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  // Native rendered indent colors.
+  "workbench.colorCustomizations": {
+    // Inactive indent block colors.
+    "editorIndentGuide.background1": "#ffd70040", // 1. Yellow
+    "editorIndentGuide.background2": "#00bfff40", // 2. Blue
+    "editorIndentGuide.background3": "#ff149340", // 3. Pink
+    "editorIndentGuide.background4": "#00ff7f40", // 4. Green
+    "editorIndentGuide.background5": "#da70d640", // 5. Purple
+    "editorIndentGuide.background6": "#ff8c0040", // 6. Orange
+    // Active indent block colors.
+    "editorIndentGuide.activeBackground1": "#ffd700",
+    "editorIndentGuide.activeBackground2": "#00bfff",
+    "editorIndentGuide.activeBackground3": "#ff1493",
+    "editorIndentGuide.activeBackground4": "#00ff7f",
+    "editorIndentGuide.activeBackground5": "#da70d6",
+    "editorIndentGuide.activeBackground6": "#ff8c00",
+  },
+
+  // Terminal settings - Font, zsh plugins.
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.fontFamily": "'Vertex Mono NF', monospace",
+  "terminal.integrated.fontSize": 16,
+  "terminal.integrated.fontLigatures": false,
+}

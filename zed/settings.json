@@ -1,0 +1,38 @@
+{
+  "theme": "Purple Fizz",
+  "icon_theme": "Material Icon Theme",
+  "project_panel": {
+    "dock": "left"
+  },
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "buffer_font_size": 15,
+  "buffer_font_family": "Vertex Mono NF",
+  "buffer_font_features": { "liga": false, "calt": false },
+  "cursor_shape": "bar",
+  "cursor_blink": true,
+  "format_on_save": "on",
+  "formatter": "auto",
+  "ui_font_family": "Vertex Mono NF",
+  "ui_font_size": 16,
+  "indent_guides": {
+    "enabled": true
+  },
+  "terminal": {
+    "dock": "bottom",
+    "font_family": "Vertex Mono NF",
+    "font_size": 16,
+    "blinking": "on",
+    "cursor_shape": "bar"
+  },
+  "auto_install_extensions": {
+    "html": true,
+    "toml": true,
+    "dockerfile": true,
+    "vue": true,
+    "markdown": true,
+    "material-icon-theme": true
+  }
+}
