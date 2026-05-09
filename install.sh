@@ -98,41 +98,47 @@ echo -e "How would you like to setup this Mac?"
 echo -e "  ${CYAN}1) Minimal${NC}    (Core CLI, Fonts, Everyday use.)"
 echo -e "  ${CYAN}2) Developer${NC}  (Everything: IDEs, configs, dev envs, DBs, VMs.)"
 echo -e "  ${CYAN}3) Custom${NC}     (Custom installation.)"
-read -p "Select installation type [1/2/3]: " PATH_CHOICE
 
-if [ "$PATH_CHOICE" == "1" ]; then
-    INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}")
-    echo -e "\n${GREEN}→ Selected: Minimal${NC}"
+while true; do
+    read -p "Select a path [1/2/3] or 'q' to quit: " PATH_CHOICE
 
-elif [ "$PATH_CHOICE" == "2" ]; then
-    INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}" "${EDITORS_CASKS[@]}" "${ADVANCED_CASKS[@]}")
-    INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}" "${DB_FORMULAE[@]}" "${ADVANCED_FORMULAE[@]}")
-    echo -e "\n${GREEN}→ Selected: Developer${NC}"
+    if [[ "$PATH_CHOICE" =~ ^[Qq]$ ]]; then
+        echo -e "\n${YELLOW}🛑 Installation aborted by user. Exiting...${NC}"
+        exit 0
+    elif [ "$PATH_CHOICE" == "1" ]; then
+        INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}")
+        echo -e "\n${GREEN}→ Selected: Minimal${NC}"
+        break
+    elif [ "$PATH_CHOICE" == "2" ]; then
+        INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}" "${EDITORS_CASKS[@]}" "${ADVANCED_CASKS[@]}")
+        INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}" "${DB_FORMULAE[@]}" "${ADVANCED_FORMULAE[@]}")
+        echo -e "\n${GREEN}→ Selected: Developer${NC}"
+        break
+    elif [ "$PATH_CHOICE" == "3" ]; then
+        echo -e "\n${YELLOW}--- Custom installation ---${NC}"
+        
+        read -p "Install Everyday apps (Browsers, VLC, Shottr, Discord)? [y/N]: " ans
+        if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}"); fi
 
-elif [ "$PATH_CHOICE" == "3" ]; then
-    echo -e "\n${YELLOW}--- Custom installation ---${NC}"
-    
-    read -p "Install Everyday apps (Browsers, VLC, Shottr, Discord)? [y/N]: " ans
-    if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}"); fi
+        read -p "Install Code editors (VS Code, Zed)? [y/N]: " ans
+        if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EDITORS_CASKS[@]}"); fi
 
-    read -p "Install Code editors (VS Code, Zed)? [y/N]: " ans
-    if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EDITORS_CASKS[@]}"); fi
+        read -p "Install Dev environments (Pyenv, NVM, CMake, Ninja, Just)? [y/N]: " ans
+        if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}"); fi
 
-    read -p "Install Dev environments (Pyenv, NVM, CMake, Ninja, Just)? [y/N]: " ans
-    if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}"); fi
+        read -p "Install Database tools (MongoDB, SQLite)? [y/N]: " ans
+        if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_FORMULAE+=("${DB_FORMULAE[@]}"); fi
 
-    read -p "Install Database tools (MongoDB, SQLite)? [y/N]: " ans
-    if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_FORMULAE+=("${DB_FORMULAE[@]}"); fi
-
-    read -p "Install Advanced tools (UTM, Tailscale, Android Tools, Hugo)? [y/N]: " ans
-    if [[ "$ans" =~ ^[Yy]$ ]]; then 
-        INSTALL_FORMULAE+=("${ADVANCED_FORMULAE[@]}")
-        INSTALL_CASKS+=("${ADVANCED_CASKS[@]}")
+        read -p "Install Advanced tools (UTM, Tailscale, Android Tools, Hugo)? [y/N]: " ans
+        if [[ "$ans" =~ ^[Yy]$ ]]; then 
+            INSTALL_FORMULAE+=("${ADVANCED_FORMULAE[@]}")
+            INSTALL_CASKS+=("${ADVANCED_CASKS[@]}")
+        fi
+        break
+    else
+        echo -e "${YELLOW}⚠️ Invalid choice. Please choose 1, 2, 3, or 'q'.${NC}"
     fi
-else
-    echo -e "${YELLOW}Invalid choice. Defaulting to Minimal Path.${NC}"
-    INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}")
-fi
+done
 
 # ===============================
 # 3. Install Homebrew & Packages
