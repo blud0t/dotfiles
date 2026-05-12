@@ -120,8 +120,11 @@ while true; do
         read -p "Install Everyday apps (Browsers, VLC, Shottr, Discord)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}"); fi
 
-        read -p "Install Code editors (VS Code, Zed)? [y/N]: " ans
+        read -p "Install Code editors (VS Code and Zed)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EDITORS_CASKS[@]}"); fi
+        # Isolated Cursor installation to avoid extensions installation conflict
+        read -p "Install AI Code editor (Cursor)? [y/N]: " ans
+        if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("cursor"); fi
 
         read -p "Install Dev environments (Pyenv, NVM, CMake, Ninja, Just)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}"); fi
@@ -156,12 +159,16 @@ echo -e "\n${BLUE}📦 Tapping repositories...${NC}"
 for tap in "${TAPS[@]}"; do
     brew tap "$tap"
 done
-
+# Looped formulae installation to rectify skips
 echo -e "\n${BLUE}📦 Installing formulae...${NC}"
-brew install "${INSTALL_FORMULAE[@]}"
-
+for formula in "${INSTALL_FORMULAE[@]}"; do
+    brew install "$formula" || echo -e "${YELLOW}⚠️ Failed to install formula: $formula. Skipping...${NC}"
+done
+# Looped casks installation to rectify skips
 echo -e "\n${BLUE}📦 Installing casks...${NC}"
-brew install --cask "${INSTALL_CASKS[@]}"
+for cask in "${INSTALL_CASKS[@]}"; do
+    brew install --cask "$cask" || echo -e "${YELLOW}⚠️ Failed to install cask: $cask. Skipping...${NC}"
+done
 
 # ========
 # 4. Font
@@ -177,10 +184,18 @@ echo -e "\n${BLUE}🐚 Configuring terminal...${NC}"
 symlink_file "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 symlink_file "$DOTFILES_DIR/wezterm/.wezterm.lua" "$HOME/.wezterm.lua"
 
+# Checking path integrity before code editor installation
+CURSOR_ONLY_MODE=false
+if [ -d "/Applications/Cursor.app" ] && [ ! -d "/Applications/Visual Studio Code.app" ]; then
+    echo -e "\n${YELLOW}⚠️ Notice: Cursor detected, but standard VS Code is missing.${NC}"
+    echo -e "${CYAN}→ The 'code' command is likely overwritten by Cursor.${NC}"
+    CURSOR_ONLY_MODE=true
+fi
+
 # ===========
 # 6. VS Code
 # ===========
-if [[ " ${INSTALL_CASKS[*]} " =~ " visual-studio-code " ]] || [ -d "/Applications/Visual Studio Code.app" ]; then
+if [ "$CURSOR_ONLY_MODE" = false ] && { [[ " ${INSTALL_CASKS[*]} " =~ " visual-studio-code " ]] || [ -d "/Applications/Visual Studio Code.app" ]; }; then
     echo -e "\n${BLUE}📝 Configuring VS Code...${NC}"
     VSCODE_USER_DIR="$HOME/Library/Application Support/Code/User"
     mkdir -p "$VSCODE_USER_DIR"
@@ -195,11 +210,11 @@ if [[ " ${INSTALL_CASKS[*]} " =~ " visual-studio-code " ]] || [ -d "/Application
     echo -e "${CYAN}🧩 Installing VS Code extensions...${NC}"
     
     # Locate the code CLI
-    CODE_CMD=""
-    if command -v code &> /dev/null; then
-        CODE_CMD="code"
-    elif [ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
+   CODE_CMD=""
+    if [ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
         CODE_CMD="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+    elif command -v code &> /dev/null; then
+        CODE_CMD="code"
     fi
 
     if [ -n "$CODE_CMD" ]; then
@@ -211,6 +226,42 @@ if [[ " ${INSTALL_CASKS[*]} " =~ " visual-studio-code " ]] || [ -d "/Application
         echo -e "${YELLOW}⚠️ Could not locate VS Code CLI. Open VS Code and install extensions manually.${NC}"
     fi
 fi
+
+# ===========
+# 6.5 Cursor
+# ===========
+if [[ " ${INSTALL_CASKS[*]} " =~ " cursor " ]] || [ -d "/Applications/Cursor.app" ]; then
+    echo -e "\n${BLUE}📝 Configuring Cursor...${NC}"
+    CURSOR_USER_DIR="$HOME/Library/Application Support/Cursor/User"
+    mkdir -p "$CURSOR_USER_DIR"
+
+    symlink_file "$DOTFILES_DIR/vscode/settings.json" "$CURSOR_USER_DIR/settings.json"
+
+    # Cursor's isolated symlink
+    CURSOR_EXT_DIR="$HOME/.cursor/extensions"
+    mkdir -p "$CURSOR_EXT_DIR"
+    symlink_file "$DOTFILES_DIR/vscode/purpletheme" "$CURSOR_EXT_DIR/blud0t.purple-fizz-1.0.0"
+
+    echo -e "${CYAN}🧩 Installing Cursor extensions...${NC}"
+    
+    # Locate the cursor CLI
+    CURSOR_CMD=""
+    if [ -x "/Applications/Cursor.app/Contents/Resources/app/bin/cursor" ]; then
+        CURSOR_CMD="/Applications/Cursor.app/Contents/Resources/app/bin/cursor"
+    elif command -v cursor &> /dev/null; then
+        CURSOR_CMD="cursor"
+    fi
+
+    if [ -n "$CURSOR_CMD" ]; then
+        while IFS= read -r ext || [ -n "$ext" ]; do
+            [[ -z "$ext" || "$ext" == \#* ]] && continue
+            "$CURSOR_CMD" --install-extension "$ext" --force
+        done < "$DOTFILES_DIR/vscode/extensions.txt"
+    else
+        echo -e "${YELLOW}⚠️ Could not locate Cursor CLI. Open Cursor and install extensions manually.${NC}"
+    fi
+fi
+# ==========================================================
 
 # =======
 # 7. Zed
