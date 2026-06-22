@@ -2,7 +2,7 @@
 
 A completely automated and interactive bootstrap script to turn a fresh macOS installation into a fully configured developer environment or an everyday machine in minutes.
 
-This repository has an `install.sh` script (very much optional, please go through the script before you run it for your safety) that automatically clones all the dotfiles, installs Homebrew, safely symlinks configs, and dynamically loads Zsh plugins only if their dependencies exist. Repository is available on both Github and Codeberg.
+This repository has an `install.sh` script (very much optional, please go through the script before you run it for your safety) that automatically clones all the dotfiles, installs Homebrew, safely copies configs, and dynamically loads Zsh plugins only if their dependencies exist. Repository is available on both Github and Codeberg.
 
 ## 🛠 Installation
 
@@ -24,7 +24,7 @@ The script will pause to let you install the Apple Command Line Tools if needed,
 
 ### The 3 Installation Paths:
 
-1. **Minimal:** Installs the core CLI tools (Zsh customisations, `powerlevel10k`, `eza`, `bat`, `fzf`), `WezTerm`, a custom font, and everyday GUI utilities (browsers, media players, screenshot tools). Perfect for a daily-driver laptop.
+1. **Minimal:** Installs the core CLI tools (Zsh customisations, `powerlevel10k`, `eza`, `bat`, `fzf`, `tlrc`), `WezTerm`, a custom font, and everyday GUI utilities (browsers, media players, screenshot tools). Perfect for a daily-driver laptop.
 2. **Developer:** Installs everything in Minimal, plus dev tools: VS Code, Zed, C++ build tools (CMake, Ninja), version managers (pyenv, nvm), database CLIs (MongoDB, SQLite), and UTM for VMs.
 3. **Custom:** A modular, interactive `[Y/n]` flow. It installs the mandatory terminal core, then pauses at each category (Code editors, DB tools, Dev environments, etc.) so you can selectively install exactly what you need.
 
@@ -37,7 +37,7 @@ This environment runs on a unified, deeply customised dark mode aesthetic across
 - **Purple Fizz:** A dark purple theme with high contrast, popping syntax colors. Made for both VS Code and Zed (toned down for Zed)
 - **Blue Slushii:** An icy, deep ink-blue theme with cyan accents (matches perfectly with my included WezTerm configuration).
 
-Both themes were built from the ground up and are automatically symlinked into **VS Code** and **Zed** (fully compliant with Zed's `v0.2.0` theme engine, including transparent diagnostic backgrounds and custom gutter colors).
+Both themes were built from the ground up and are automatically copied into **VS Code** and **Zed** (fully compliant with Zed's `v0.2.0` theme engine, including transparent diagnostic backgrounds and custom gutter colors).
 
 ---
 
@@ -63,6 +63,7 @@ While Homebrew handles 99% of this stack, window management is handled by an inc
 - **[bat](https://github.com/sharkdp/bat)**: A `cat` clone with built-in syntax highlighting and Git integration, closely matched to my Wezterm's color palette.
 - **[fd](https://github.com/sharkdp/fd)**: A simpler, significantly faster, and more user-friendly alternative to the traditional `find` command.
 - **[fzf](https://github.com/junegunn/fzf)**: A general purpose command-line fuzzy finder. In this setup, it is deeply integrated with Zsh to provide instant, interactive previews for file navigation and history searches.
+- **[tlrc](https://github.com/tldr-pages/tlrc)**: A TLDR client written in Rust to read manuals.
 - **[pay-respects](https://github.com/iffse/pay-respects)**: A lightning fast, Rust based alternative to `thefuck` that instantly corrects typos in your terminal commands so you never lose your flow.
 
 ### Editors
@@ -77,18 +78,25 @@ While Homebrew handles 99% of this stack, window management is handled by an inc
 - **[pyenv](https://github.com/pyenv/pyenv)**: Python Version Management. Safely manage multiple active python versions without interfering with the system Python installation.
 - **[difi](https://github.com/xguot/difi)**: An incredibly intuitive TUI (Terminal User Interface) for reviewing Git diffs interactively before committing code.
 
+### ⚙️ Everyday Utilities
+
+- **[Vorssaint](https://github.com/vorssaint/vorssaint-utils)**: A brand-new, open-source macOS menu bar app bundling a volume mixer, window switcher, and keep-awake utilities into one unified interface.
+- **[Utilities]**: All are open-source. Bitwarden (Password manager), Ente Auth (2FA), and Notesnook (E2EE Notes).
+- **[Shottr](https://shottr.cc/)**: Best screenshot and annotation tool I've used. Has a free tier and a one-time purchase as well.
+- **[Localsend](https://github.com/localsend/localsend)**: Send/Receive files across your iOS, Android, Windows, MacOS and Linux.
+- **[OpenMTP](https://github.com/ganeshrvel/openmtp)**: Best app to copy files to and from your Android device to your Mac via wired connection.
+- **[Browsers]**: All are open-source, offering a compartmentalized setup including Mullvad Browser, Ungoogled Chromium, Floorp.
+- **[Keka](https://github.com/aonez/keka)**: The best GUI macOS file archiver. Supports all formats and additional archiving options.
+- **[RustDesk](https://github.com/rustdesk/rustdesk)**: The open-source, self-hostable remote desktop alternative.
+
 ### Other tools included
 
 - **[Mole](https://github.com/tw93/mole)**: An excellent MacOS clean-up utility that's interactive. Straight from your terminal.
-- **[OpenMTP](https://github.com/ganeshrvel/openmtp)**: Best app to copy files to and fro from your Android device to your Mac.
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**: Command-line media conversion and downloading.
 - **[NextDNS](https://github.com/nextdns/nextdns/wiki/MacOS)**: My personal choice for highly customisable and private DNS service.
-- **[Shottr](https://shottr.cc/)**: Best screenshot and annotation tool I've used. Has a free tier and a one-time purchase as well.
-- **[Localsend](https://github.com/localsend/localsend)**: Send/Recieve files across your iOS, Adroid, Windows, MacOS and Linux.
 
 ```
-Running the script is entirely OPTIONAL. I only made the script for easy
-initialization of MacOS after a fresh install.
-If you already have a functioning, customized system, you can simply go
-through my files, copy and modify them as you like to your needs.
+Running the script is entirely OPTIONAL. I only made the script for easy initialization of MacOS after a fresh install.
+If you already have a functioning, customized system, you can simply go through my files, copy and modify them as you like to your needs.
 - blud0t
 ```
