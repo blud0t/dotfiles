@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DOTFILES_DIR="$HOME/Developer/dotfiles"
+DOTFILES_DIR="/tmp/macos_dotfiles_setup"
 BACKUP_DIR="$HOME/dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
 
 # ======================
@@ -11,23 +11,29 @@ CODEBERG_URL="https://codeberg.org/blud0t/dotfiles.git"
 
 if [ ! -d "$DOTFILES_DIR" ]; then
     echo -e "${YELLOW}📂 Dotfiles directory not found. Cloning repository...${NC}"
-    mkdir -p "$HOME/Developer"
     
     # Check for git and wait for installation if missing
     if ! command -v git &> /dev/null; then
-        echo -e "${YELLOW}⚠️ Git is not installed. Starting installation of Command Line Tools...${NC}"
-        xcode-select --install
-        
-        echo -e "${CYAN}⏳ Waiting for macOS Command Line Tools installation to complete...${NC}"
-        echo -e "${CYAN}(Please complete the installation in the window that just appeared. The script will automatically resume when finished.)${NC}"
-        
-        # Git install verification loop
-        while ! command -v git &> /dev/null; do
-            sleep 5
-        done
-        
-        echo -e "${GREEN}✅ Command Line Tools installed successfully! Resuming script...${NC}"
-    fi
+        # Headless git installation
+        echo -e "${YELLOW}⚠️ Git is not installed. Starting headless installation of Command Line Tools...${NC}"
+        touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+        CLI_UPDATE=$(softwareupdate -l | grep "\*.*Command Line" | tail -n 1 | sed 's/^[^C]* //')
+
+        if [ -n "$CLI_UPDATE" ]; then
+            echo -e "${CYAN}⏳ Installing: $CLI_UPDATE (This will take a few minutes)${NC}"
+            softwareupdate -i "$CLI_UPDATE" --verbose
+            rm /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+            echo -e "${GREEN}✅ Command Line Tools installed successfully! Resuming script...${NC}"
+        else
+            echo -e "${YELLOW}⚠️ Headless install failed. Falling back to GUI prompt...${NC}"
+            xcode-select --install
+            
+            # Fallback git installation
+            while ! command -v git &> /dev/null; do
+                sleep 5
+            done
+            echo -e "${GREEN}✅ Command Line Tools installed successfully! Resuming script...${NC}"
+        fi
     
     if git clone "$GITHUB_URL" "$DOTFILES_DIR"; then
         echo -e "${GREEN}✅ Repository cloned successfully from GitHub.${NC}"
@@ -52,11 +58,12 @@ echo -e "${BLUE}==========================================${NC}\n"
 
 mkdir -p "$BACKUP_DIR"
 
-# symlink - Helper function
-symlink_file() {
+# Switched to standard copy flow instead of symlinks
+copy_file() {
     local src=$1
     local dest=$2
 
+    # Legacy symlinks cleanup
     if [ -L "$dest" ]; then
         rm "$dest"
     elif [ -e "$dest" ]; then
@@ -64,28 +71,30 @@ symlink_file() {
         mv "$dest" "$BACKUP_DIR/"
     fi
 
-    ln -s "$src" "$dest"
-    echo -e "${GREEN}✅ Linked $dest -> $src${NC}"
+    cp -R "$src" "$dest"
+    echo -e "${GREEN}✅ Copied $src -> $dest${NC}"
 }
 
 # ==================
 # 1. Package arrays
 # ==================
-TAPS=("romkatv/powerlevel10k" "timescam/homebrew-tap")
+TAPS=("romkatv/powerlevel10k" "dail8859/notepadnext" "vorssaint/tap")
 
-# Core (Mandatory for all)
-CORE_FORMULAE=("bat" "eza" "fd" "fzf" "romkatv/powerlevel10k/powerlevel10k" "zsh-autosuggestions" "zsh-syntax-highlighting")
+# Core (Mandatory for all paths)
+CORE_FORMULAE=("bat" "eza" "fd" "fzf" "p7zip" "tlrc" "tree" "romkatv/powerlevel10k/powerlevel10k" "zsh-autosuggestions" "zsh-syntax-highlighting" "zsh-autocomplete")
 CORE_CASKS=("wezterm")
 
-# Everyday use (Minimal)
-EVERYDAY_CASKS=("mullvad-browser" "ungoogled-chromium" "vlc" "pearcleaner" "shottr" "localsend" "notepadnext" "discord")
+# Everyday use (Minimal path)
+EVERYDAY_CASKS=("mullvad-browser" "ungoogled-chromium" "floorp" "vlc" "pearcleaner" "shottr" "localsend" "notepadnext" "discord" "notesnook" "zotero" "bitwarden" "ente-auth" "keka" "rustdesk" "vorssaint")
 
-# Developer tools categories
+# Developer tools
 EDITORS_CASKS=("visual-studio-code" "zed")
-DEV_ENV_FORMULAE=("cmake" "ninja" "just" "nvm" "pyenv" "coreutils" "difi" "timescam/homebrew-tap/pay-respects" "tree" "zsh-autocomplete")
+DEV_ENV_FORMULAE=("allure" "cmake" "coreutils" "deno" "difi" "fresh-editor" "hugo" "just" "ninja" "node" "nvm" "pyenv")
 DB_FORMULAE=("mongodb-atlas-cli" "mongosh" "sqlite")
-ADVANCED_FORMULAE=("hugo" "mole" "p7zip" "scrcpy" "nextdns")
-ADVANCED_CASKS=("android-platform-tools" "openmtp" "tailscale-app" "utm")
+
+# Power Tools (Media, VMs, Android, Networking)
+POWER_FORMULAE=("ffmpeg" "mole" "nextdns" "scrcpy" "yt-dlp")
+POWER_CASKS=("android-platform-tools" "openmtp" "utm")
 
 # Lists populated based on user choice
 INSTALL_FORMULAE=("${CORE_FORMULAE[@]}")
@@ -95,9 +104,9 @@ INSTALL_CASKS=("${CORE_CASKS[@]}")
 # 2. Interactive Menu
 # ====================
 echo -e "How would you like to setup this Mac?"
-echo -e "  ${CYAN}1) Minimal${NC}    (Core CLI, Fonts, Everyday use.)"
-echo -e "  ${CYAN}2) Developer${NC}  (Everything: IDEs, configs, dev envs, DBs, VMs.)"
-echo -e "  ${CYAN}3) Custom${NC}     (Custom installation.)"
+echo -e "  ${CYAN}1) Minimal${NC}    (Core CLI, Fonts, Browsers, Notes, Everyday use.)"
+echo -e "  ${CYAN}2) Developer${NC}  (Everything: IDEs, Dev Envs, DBs, Android Tools, VMs, Media.)"
+echo -e "  ${CYAN}3) Custom${NC}     (Choose exact categories to install.)"
 
 while true; do
     read -p "Select a path [1/2/3] or 'q' to quit: " PATH_CHOICE
@@ -110,32 +119,33 @@ while true; do
         echo -e "\n${GREEN}→ Selected: Minimal${NC}"
         break
     elif [ "$PATH_CHOICE" == "2" ]; then
-        INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}" "${EDITORS_CASKS[@]}" "${ADVANCED_CASKS[@]}")
-        INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}" "${DB_FORMULAE[@]}" "${ADVANCED_FORMULAE[@]}")
+        INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}" "${EDITORS_CASKS[@]}" "${POWER_CASKS[@]}")
+        INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}" "${DB_FORMULAE[@]}" "${POWER_FORMULAE[@]}")
         echo -e "\n${GREEN}→ Selected: Developer${NC}"
         break
     elif [ "$PATH_CHOICE" == "3" ]; then
         echo -e "\n${YELLOW}--- Custom installation ---${NC}"
         
-        read -p "Install Everyday apps (Browsers, VLC, Shottr, Discord)? [y/N]: " ans
+        read -p "Install everyday apps (Browsers, Media, Notes, Auth)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EVERYDAY_CASKS[@]}"); fi
 
         read -p "Install Code editors (VS Code and Zed)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("${EDITORS_CASKS[@]}"); fi
+        
         # Isolated Cursor installation to avoid extensions installation conflict
         read -p "Install AI Code editor (Cursor)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_CASKS+=("cursor"); fi
 
-        read -p "Install Dev environments (Pyenv, NVM, CMake, Ninja, Just)? [y/N]: " ans
+        read -p "Install Dev environments (Node, Python, CMake, Hugo, etc.)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_FORMULAE+=("${DEV_ENV_FORMULAE[@]}"); fi
 
         read -p "Install Database tools (MongoDB, SQLite)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then INSTALL_FORMULAE+=("${DB_FORMULAE[@]}"); fi
 
-        read -p "Install Advanced tools (UTM, Tailscale, Android Tools, Hugo)? [y/N]: " ans
+        read -p "Install Power tools (VMs, Android ADB, FFmpeg, nextdns)? [y/N]: " ans
         if [[ "$ans" =~ ^[Yy]$ ]]; then 
-            INSTALL_FORMULAE+=("${ADVANCED_FORMULAE[@]}")
-            INSTALL_CASKS+=("${ADVANCED_CASKS[@]}")
+            INSTALL_FORMULAE+=("${POWER_FORMULAE[@]}")
+            INSTALL_CASKS+=("${POWER_CASKS[@]}")
         fi
         break
     else
@@ -159,12 +169,12 @@ echo -e "\n${BLUE}📦 Tapping repositories...${NC}"
 for tap in "${TAPS[@]}"; do
     brew tap "$tap"
 done
-# Looped formulae installation to rectify skips
+# Looped formula installations to rectify skips
 echo -e "\n${BLUE}📦 Installing formulae...${NC}"
 for formula in "${INSTALL_FORMULAE[@]}"; do
     brew install "$formula" || echo -e "${YELLOW}⚠️ Failed to install formula: $formula. Skipping...${NC}"
 done
-# Looped casks installation to rectify skips
+# Looped cask installations to rectify skips
 echo -e "\n${BLUE}📦 Installing casks...${NC}"
 for cask in "${INSTALL_CASKS[@]}"; do
     brew install --cask "$cask" || echo -e "${YELLOW}⚠️ Failed to install cask: $cask. Skipping...${NC}"
@@ -181,8 +191,8 @@ echo -e "${GREEN}✅ Vertex Mono NF installed.${NC}"
 # 5. Terminal Configs (Zsh & WezTerm)
 # ====================================
 echo -e "\n${BLUE}🐚 Configuring terminal...${NC}"
-symlink_file "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
-symlink_file "$DOTFILES_DIR/wezterm/.wezterm.lua" "$HOME/.wezterm.lua"
+copy_file "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
+copy_file "$DOTFILES_DIR/wezterm/.wezterm.lua" "$HOME/.wezterm.lua"
 
 # Checking path integrity before code editor installation
 CURSOR_ONLY_MODE=false
@@ -200,31 +210,20 @@ if [ "$CURSOR_ONLY_MODE" = false ] && { [[ " ${INSTALL_CASKS[*]} " =~ " visual-s
     VSCODE_USER_DIR="$HOME/Library/Application Support/Code/User"
     mkdir -p "$VSCODE_USER_DIR"
 
-    symlink_file "$DOTFILES_DIR/vscode/settings.json" "$VSCODE_USER_DIR/settings.json"
+    copy_file "$DOTFILES_DIR/vscode/settings.json" "$VSCODE_USER_DIR/settings.json"
 
     # Theme
     VSCODE_EXT_DIR="$HOME/.vscode/extensions"
     mkdir -p "$VSCODE_EXT_DIR"
-    symlink_file "$DOTFILES_DIR/vscode/purpletheme" "$VSCODE_EXT_DIR/blud0t.purple-fizz-1.0.0"
-
-    echo -e "${CYAN}🧩 Installing VS Code extensions...${NC}"
+    copy_file "$DOTFILES_DIR/vscode/purpletheme" "$VSCODE_EXT_DIR/blud0t.purple-fizz-1.0.0"
     
-    # Locate the code CLI
-   CODE_CMD=""
-    if [ -x "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
-        CODE_CMD="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-    elif command -v code &> /dev/null; then
-        CODE_CMD="code"
-    fi
-
-    if [ -n "$CODE_CMD" ]; then
-        while IFS= read -r ext || [ -n "$ext" ]; do
-            [[ -z "$ext" || "$ext" == \#* ]] && continue
-            "$CODE_CMD" --install-extension "$ext" --force
-        done < "$DOTFILES_DIR/vscode/extensions.txt"
-    else
-        echo -e "${YELLOW}⚠️ Could not locate VS Code CLI. Open VS Code and install extensions manually.${NC}"
-    fi
+    # Extensions
+    echo -e "${CYAN}🧩 Installing VS Code extensions...${NC}"
+    while IFS= read -r ext || [ -n "$ext" ]; do
+        ext=$(echo "$ext" | tr -d '\r' | xargs)
+        [[ -z "$ext" || "$ext" == \#* ]] && continue
+        code --install-extension "$ext" --force
+    done < "$DOTFILES_DIR/vscode/extensions.txt"
 fi
 
 # ===========
@@ -235,31 +234,20 @@ if [[ " ${INSTALL_CASKS[*]} " =~ " cursor " ]] || [ -d "/Applications/Cursor.app
     CURSOR_USER_DIR="$HOME/Library/Application Support/Cursor/User"
     mkdir -p "$CURSOR_USER_DIR"
 
-    symlink_file "$DOTFILES_DIR/vscode/settings.json" "$CURSOR_USER_DIR/settings.json"
+    copy_file "$DOTFILES_DIR/vscode/settings.json" "$CURSOR_USER_DIR/settings.json"
 
-    # Cursor's isolated symlink
+    # Cursor's isolated copied files & Theme
     CURSOR_EXT_DIR="$HOME/.cursor/extensions"
     mkdir -p "$CURSOR_EXT_DIR"
-    symlink_file "$DOTFILES_DIR/vscode/purpletheme" "$CURSOR_EXT_DIR/blud0t.purple-fizz-1.0.0"
-
-    echo -e "${CYAN}🧩 Installing Cursor extensions...${NC}"
+    copy_file "$DOTFILES_DIR/vscode/purpletheme" "$CURSOR_EXT_DIR/blud0t.purple-fizz-1.0.0"
     
-    # Locate the cursor CLI
-    CURSOR_CMD=""
-    if [ -x "/Applications/Cursor.app/Contents/Resources/app/bin/cursor" ]; then
-        CURSOR_CMD="/Applications/Cursor.app/Contents/Resources/app/bin/cursor"
-    elif command -v cursor &> /dev/null; then
-        CURSOR_CMD="cursor"
-    fi
-
-    if [ -n "$CURSOR_CMD" ]; then
-        while IFS= read -r ext || [ -n "$ext" ]; do
-            [[ -z "$ext" || "$ext" == \#* ]] && continue
-            "$CURSOR_CMD" --install-extension "$ext" --force
-        done < "$DOTFILES_DIR/vscode/extensions.txt"
-    else
-        echo -e "${YELLOW}⚠️ Could not locate Cursor CLI. Open Cursor and install extensions manually.${NC}"
-    fi
+    # Extensions
+    echo -e "${CYAN}🧩 Installing Cursor extensions...${NC}"
+    while IFS= read -r ext || [ -n "$ext" ]; do
+        ext=$(echo "$ext" | tr -d '\r' | xargs)
+        [[ -z "$ext" || "$ext" == \#* ]] && continue
+        cursor --install-extension "$ext" --force
+    done < "$DOTFILES_DIR/vscode/extensions.txt"
 fi
 # ==========================================================
 
@@ -269,17 +257,30 @@ fi
 if [[ " ${INSTALL_CASKS[*]} " =~ " zed " ]] || [ -d "$HOME/.config/zed" ]; then
     echo -e "\n${BLUE}⚡ Configuring Zed...${NC}"
     mkdir -p "$HOME/.config/zed/themes"
-    symlink_file "$DOTFILES_DIR/zed/settings.json" "$HOME/.config/zed/settings.json"
-    symlink_file "$DOTFILES_DIR/zed/themes/blueslushii.json" "$HOME/.config/zed/themes/blueslushii.json"
-    symlink_file "$DOTFILES_DIR/zed/themes/purplefizz.json" "$HOME/.config/zed/themes/purplefizz.json"
+    copy_file "$DOTFILES_DIR/zed/settings.json" "$HOME/.config/zed/settings.json"
+    copy_file "$DOTFILES_DIR/zed/themes/blueslushii.json" "$HOME/.config/zed/themes/blueslushii.json"
+    copy_file "$DOTFILES_DIR/zed/themes/purplefizz.json" "$HOME/.config/zed/themes/purplefizz.json"
 fi
 
 # ==============
 # 8. Finalising
 # ==============
+
+echo -e "\n${BLUE}📦 Installing pay-respects natively...${NC}"
+curl -sSfL https://raw.githubusercontent.com/iffse/pay-respects/main/install.sh | sh
+
+echo -e "\n${BLUE}🧹 Cleaning up Homebrew leftovers...${NC}"
+brew cleanup --prune=all
+echo -e "${GREEN}✅ Homebrew clean up complete.${NC}"
+
+echo -e "\n${BLUE}🗑️  Removing temporary dotfiles repository...${NC}"
+rm -rf "$DOTFILES_DIR"
+echo -e "${GREEN}✅ Temporary files deleted.${NC}"
+
+echo -e "\n${CYAN}⏳ Installation complete! Pausing for 10 seconds to review...${NC}"
+sleep 10
+
 echo -e "\n${GREEN}🎉 All done! Your macOS environment is fully set up.${NC}"
-echo -e "${YELLOW}⚠️ FINAL STEPS:${NC}"
-echo -e "${CYAN}1. Completely quit this default Terminal.${NC}"
-echo -e "${CYAN}2. Open 'WezTerm' from your Applications folder.${NC}"
-echo -e "${CYAN}3. Follow the Powerlevel10k configuration wizard that automatically appears.${NC}"
-echo -e "${CYAN}4. Use 'p10k configure' in your Wezterm to start it manually.${NC}\n"
+echo -e "${CYAN}Launching WezTerm to initialize Powerlevel10k and closing this terminal...${NC}"
+open -a WezTerm
+osascript -e 'tell application "Terminal" to quit'
