@@ -34,6 +34,7 @@ if [ ! -d "$DOTFILES_DIR" ]; then
             done
             echo -e "${GREEN}✅ Command Line Tools installed successfully! Resuming script...${NC}"
         fi
+    fi
     
     if git clone "$GITHUB_URL" "$DOTFILES_DIR"; then
         echo -e "${GREEN}✅ Repository cloned successfully from GitHub.${NC}"
